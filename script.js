@@ -33,6 +33,9 @@ const tagMeta = {
 };
 
 const defaultData = {
+  profile: {
+    preferredName: "",
+  },
   tasks: [
     {
       id: crypto.randomUUID(),
@@ -81,6 +84,7 @@ let hasRenderedApp = false;
 let saveTimeoutId = null;
 
 const authShell = document.getElementById("auth-shell");
+const authPreferredNameInput = document.getElementById("auth-preferred-name");
 const authEmailInput = document.getElementById("auth-email");
 const authPasswordInput = document.getElementById("auth-password");
 const authMessage = document.getElementById("auth-message");
@@ -93,6 +97,7 @@ const monthLabel = document.getElementById("month-label");
 const calendarGrid = document.getElementById("calendar-grid");
 const calendarDayDetail = document.getElementById("calendar-day-detail");
 const selectedDateLabel = document.getElementById("selected-date-label");
+const heroGreeting = document.getElementById("hero-greeting");
 const heroMessage = document.getElementById("hero-message");
 const moodStrip = document.getElementById("mood-strip");
 const entryTitleInput = document.getElementById("entry-title");
@@ -283,6 +288,7 @@ async function handleAuth(mode) {
     authMessage.textContent = "Account login isn't connected yet. Add your Supabase keys in app-config.js first.";
     return;
   }
+  const preferredName = authPreferredNameInput.value.trim();
   const email = authEmailInput.value.trim();
   const password = authPasswordInput.value.trim();
   if (!email || !password) {
@@ -291,10 +297,38 @@ async function handleAuth(mode) {
   }
 
   authMessage.textContent = mode === "sign-up" ? "Creating account..." : "Signing in...";
-  const fn = mode === "sign-up" ? supabaseClient.auth.signUp.bind(supabaseClient.auth) : supabaseClient.auth.signInWithPassword.bind(supabaseClient.auth);
 
   try {
-    const { error } = await fn({ email, password });
+    const { data, error } = mode === "sign-up"
+      ? await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              preferred_name: preferredName || "",
+            },
+          },
+        })
+      : await supabaseClient.auth.signInWithPassword({ email, password });
+    if (!error && preferredName) {
+      state.profile = {
+        ...(state.profile || {}),
+        preferredName,
+      };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizeState(state)));
+    }
+    if (!error && mode === "sign-in" && preferredName) {
+      const { data: updatedUserData, error: updateUserError } = await supabaseClient.auth.updateUser({
+        data: {
+          preferred_name: preferredName,
+        },
+      });
+      if (!updateUserError && updatedUserData?.user) {
+        currentUser = updatedUserData.user;
+      }
+    } else if (!error && data?.user) {
+      currentUser = data.user;
+    }
     authMessage.textContent = error
       ? error.message
       : mode === "sign-up"
@@ -312,9 +346,10 @@ async function handleSignOut() {
 }
 
 function applyAuthState() {
+  updateGreeting();
   if (currentUser) {
     authShell.classList.remove("visible");
-    accountEmail.textContent = currentUser.email || "Signed in";
+    accountEmail.textContent = getPreferredName() || "Signed in";
     return;
   }
   authShell.classList.add("visible");
@@ -345,7 +380,20 @@ async function loadUserState() {
     await saveCloudState();
   }
 
+  const authPreferredName = currentUser?.user_metadata?.preferred_name || "";
+  let shouldBackfillProfile = false;
+  if (!state.profile?.preferredName && authPreferredName) {
+    state.profile = {
+      ...(state.profile || {}),
+      preferredName: authPreferredName,
+    };
+    shouldBackfillProfile = true;
+  }
+
   normalizeTasks();
+  if (shouldBackfillProfile) {
+    await saveCloudState();
+  }
   renderApp();
 }
 
@@ -363,6 +411,7 @@ function renderApp() {
   renderTasks();
   renderTracker();
   syncDrawerButton();
+  updateGreeting();
 }
 
 function renderInspiration() {
@@ -844,6 +893,11 @@ function loadLocalCache() {
 
 function sanitizeState(candidate) {
   const next = {
+    profile: candidate?.profile && typeof candidate.profile === "object"
+      ? {
+          preferredName: candidate.profile.preferredName || "",
+        }
+      : { preferredName: "" },
     tasks: Array.isArray(candidate?.tasks) ? candidate.tasks.map((task) => ({
       id: task.id || crypto.randomUUID(),
       title: task.title || "",
@@ -965,6 +1019,9 @@ function removeDragGhost() {
 }
 
 function normalizeTasks() {
+  state.profile = {
+    preferredName: state?.profile?.preferredName || "",
+  };
   state.tasks.forEach((task) => {
     task.targetDate = task.targetDate || null;
     task.assignedDates = Array.isArray(task.assignedDates) ? task.assignedDates : [];
@@ -975,6 +1032,16 @@ function normalizeTasks() {
     }
     if ("kind" in task) delete task.kind;
   });
+}
+
+function getPreferredName() {
+  return state?.profile?.preferredName || currentUser?.user_metadata?.preferred_name || "";
+}
+
+function updateGreeting() {
+  if (!heroGreeting) return;
+  const preferredName = getPreferredName();
+  heroGreeting.textContent = preferredName ? `Hello, ${preferredName}.` : "Hello there.";
 }
 
 function formatTargetDate(dateKey) {
