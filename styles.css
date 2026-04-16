@@ -36,6 +36,11 @@ body {
 
 body {
   overflow-x: hidden;
+  padding:
+    env(safe-area-inset-top, 0)
+    env(safe-area-inset-right, 0)
+    env(safe-area-inset-bottom, 0)
+    env(safe-area-inset-left, 0);
 }
 
 .auth-shell {
@@ -72,6 +77,16 @@ body {
   gap: 12px;
 }
 
+.auth-label {
+  margin: 2px 0 0;
+}
+
+.auth-helper {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .auth-actions {
   display: flex;
   gap: 12px;
@@ -80,6 +95,7 @@ body {
 
 .auth-secondary-button {
   padding: 16px 18px;
+  min-width: 150px;
 }
 
 button,
@@ -827,6 +843,7 @@ select.soft-input {
   .task-creator {
     grid-template-columns: 1fr;
   }
+
 }
 
 @media (max-width: 720px) {

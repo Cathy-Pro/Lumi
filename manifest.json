@@ -1,0 +1,25 @@
+{
+  "name": "Bloomboard",
+  "short_name": "Bloomboard",
+  "description": "A private journal, planner, and wellbeing space for daily tasks, notes, and mindful progress.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fbf4",
+  "theme_color": "#a9ddc5",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
