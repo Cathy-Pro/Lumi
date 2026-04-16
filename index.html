@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bloomboard</title>
+    <title>Lumi</title>
     <meta name="theme-color" content="#a9ddc5" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Bloomboard" />
+    <meta name="apple-mobile-web-app-title" content="Lumi" />
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="icons/icon-192.png" type="image/png" />
@@ -24,7 +24,7 @@
     <div class="cursor-aura"></div>
     <section id="auth-shell" class="auth-shell">
       <div class="auth-card">
-        <p class="eyebrow">Welcome to Bloomboard!</p>
+        <p class="eyebrow">Welcome to Lumi!</p>
         <h1 class="auth-title">Your private little universe</h1>
         <p class="hero-message">Create a new account or sign in to continue.</p>
         <div class="auth-form">
@@ -32,7 +32,7 @@
           <input id="auth-email" class="soft-input" type="email" placeholder="Email address" autocomplete="email" />
           <label class="input-label auth-label" for="auth-password">Password</label>
           <input id="auth-password" class="soft-input" type="password" placeholder="Password" autocomplete="current-password" />
-          <p class="auth-helper">New to Bloomboard? Create Account. Already have an account? Sign In.</p>
+          <p class="auth-helper">New to Lumi? Create Account. Already have an account? Sign In.</p>
           <div class="auth-actions">
             <button id="sign-up-button" class="cta-button small-cta" type="button">Create Account</button>
             <button id="sign-in-button" class="soft-button auth-secondary-button" type="button">Sign In</button>
@@ -44,9 +44,9 @@
     <div class="page-shell">
       <header class="hero-card">
         <div class="hero-copy">
-          <p class="eyebrow">Bloomboard</p>
-          <h1>My little Universe.</h1>
-          <p class="hero-message" id="hero-message"></p>
+          <p class="eyebrow">Lumi</p>
+          <h1>A quiet corner for your little universe.</h1>
+          <p class="hero-message" id="hero-message">Today's quote will appear here.</p>
           <div class="hero-actions hero-actions-wide">
             <button id="jump-today" class="soft-button soft-button-secondary">Open Today</button>
             <div class="account-chip">
@@ -67,38 +67,15 @@
         </div>
       </header>
 
-      <section class="panel drawer-panel">
-        <div class="drawer-topbar">
-          <div>
-            <p class="eyebrow">Task Drawer</p>
-            <h2>Pick a little mission and drop it onto your day.</h2>
-          </div>
-          <div class="drawer-controls">
-            <input id="task-search" class="soft-input search-input" type="search" placeholder="Search tasks, tags, notes..." />
-            <button id="toggle-drawer" class="soft-button">Hide Drawer</button>
-          </div>
-        </div>
+      <nav class="mobile-nav" aria-label="Mobile sections">
+        <button class="mobile-nav-button active" data-panel-target="calendar-panel" type="button">Calendar</button>
+        <button class="mobile-nav-button" data-panel-target="drawer-panel" type="button">Tasks</button>
+        <button class="mobile-nav-button" data-panel-target="detail-panel" type="button">Notes</button>
+        <button class="mobile-nav-button" data-panel-target="tracker-panel" type="button">Progress</button>
+      </nav>
 
-        <div class="task-creator">
-          <input id="task-title" class="soft-input" type="text" placeholder="Create a healing task" />
-          <select id="task-tag" class="soft-input">
-            <option value="Health">Health</option>
-            <option value="Wellbeing">Wellbeing</option>
-            <option value="Mindfulness">Mindfulness</option>
-            <option value="Focus">Focus</option>
-            <option value="Creativity">Creativity</option>
-            <option value="Rest">Rest</option>
-          </select>
-          <input id="task-target-date" class="soft-input" type="date" />
-          <textarea id="task-detail" class="soft-input soft-textarea" placeholder="Add details, kind reminders, or links"></textarea>
-          <button id="add-task" class="cta-button small-cta">Add Task</button>
-        </div>
-
-        <div id="task-drawer" class="task-drawer"></div>
-      </section>
-
-      <main class="layout-grid">
-        <section class="panel calendar-panel">
+      <div id="mobile-sections" class="mobile-sections">
+        <section class="panel calendar-panel mobile-panel" data-panel-name="calendar-panel">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Calendar</p>
@@ -121,16 +98,46 @@
           <div id="calendar-grid" class="calendar-grid"></div>
         </section>
 
-        <aside class="panel detail-panel">
+        <section class="panel drawer-panel mobile-panel" data-panel-name="drawer-panel">
+          <div class="drawer-topbar">
+            <div>
+              <p class="eyebrow">Task Drawer</p>
+              <h2>Pick a little mission and drop it onto your day.</h2>
+            </div>
+            <div class="drawer-controls">
+              <input id="task-search" class="soft-input search-input" type="search" placeholder="Search tasks, tags, notes..." />
+              <button id="toggle-drawer" class="soft-button">Hide Drawer</button>
+            </div>
+          </div>
+
+          <div class="task-creator">
+            <input id="task-title" class="soft-input" type="text" placeholder="Create a healing task" />
+            <select id="task-tag" class="soft-input">
+              <option value="Health">Health</option>
+              <option value="Wellbeing">Wellbeing</option>
+              <option value="Mindfulness">Mindfulness</option>
+              <option value="Focus">Focus</option>
+              <option value="Creativity">Creativity</option>
+              <option value="Rest">Rest</option>
+            </select>
+            <input id="task-target-date" class="soft-input" type="date" />
+            <textarea id="task-detail" class="soft-input soft-textarea" placeholder="Add details, kind reminders, or links"></textarea>
+            <button id="add-task" class="cta-button small-cta">Add Task</button>
+          </div>
+
+          <div id="task-drawer" class="task-drawer"></div>
+        </section>
+
+        <aside class="panel detail-panel mobile-panel" data-panel-name="detail-panel">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Daily Canvas</p>
-              <h2 id="selected-date-label">Choose a day</h2>
+              <h2 id="selected-date-label">Today</h2>
             </div>
             <button id="clear-day" class="soft-button soft-button-secondary">Reset Notes</button>
           </div>
 
-          <p class="canvas-help">Daily Canvas stores your mood, inspirations, links, and notes for the selected day.</p>
+          <p class="canvas-help">A little spark for the day, a soft note to yourself, and whatever you want to keep close.</p>
           <div class="mood-strip" id="mood-strip"></div>
 
           <label class="input-label" for="entry-title">Today in a phrase</label>
@@ -156,7 +163,7 @@
               <button id="clear-stickers" class="text-button">Clear</button>
             </div>
             <div id="sticker-picker" class="sticker-picker"></div>
-            <div id="selected-stickers" class="selected-stickers"></div>
+            <div id="selected-stickers" class="selected-stickers">No sticker picked for today yet.</div>
           </div>
 
           <div class="task-drop-zone" id="task-drop-zone">
@@ -167,9 +174,9 @@
 
           <button id="save-entry" class="cta-button">Save Day Notes</button>
         </aside>
-      </main>
+      
 
-      <footer class="panel tracker-panel">
+      <footer class="panel tracker-panel mobile-panel" data-panel-name="tracker-panel">
         <div class="section-heading">
           <div>
             <p class="eyebrow">Progress Path</p>
@@ -182,6 +189,7 @@
         </div>
         <div id="tracker-items" class="tracker-items"></div>
       </footer>
+      </div>
     </div>
 
     <div id="feedback-bubble" class="feedback-bubble" aria-live="polite"></div>

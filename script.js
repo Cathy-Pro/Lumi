@@ -67,6 +67,7 @@ let activeMood = null;
 let draggedTaskId = null;
 let dragGhost = null;
 let highlightedDateKey = null;
+let selectedTaskForMobile = null;
 let currentUser = null;
 let supabaseClient = null;
 let cloudReady = false;
@@ -101,6 +102,8 @@ const completionLabel = document.getElementById("completion-label");
 const taskTemplate = document.getElementById("task-card-template");
 const cursorAura = document.querySelector(".cursor-aura");
 const feedbackBubble = document.getElementById("feedback-bubble");
+const mobileSections = document.getElementById("mobile-sections");
+const mobileNavButtons = Array.from(document.querySelectorAll(".mobile-nav-button"));
 
 const config = window.APP_CONFIG || {};
 
@@ -249,6 +252,17 @@ function wireGlobalEvents() {
   document.addEventListener("touchend", () => {
     finishPointerDrag();
   });
+
+  mobileNavButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = mobileSections.querySelector(`[data-panel-name="${button.dataset.panelTarget}"]`);
+      if (!target) return;
+      target.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+      syncMobileNav(button.dataset.panelTarget);
+    });
+  });
+
+  mobileSections.addEventListener("scroll", debounce(syncMobileNavToScroll, 60));
 }
 
 async function handleAuth(mode) {
@@ -323,6 +337,8 @@ async function loadUserState() {
 }
 
 function renderApp() {
+  selectedDateKey = selectedDateKey || toDateKey(new Date());
+  viewingDate = viewingDate || new Date();
   if (!hasRenderedApp) {
     hasRenderedApp = true;
   }
@@ -338,7 +354,7 @@ function renderApp() {
 
 function renderInspiration() {
   const item = inspirations[inspirationIndex % inspirations.length];
-  heroMessage.textContent = `${item.text}  •  ${item.source}`;
+  heroMessage.textContent = `Today's quote: ${item.text}  •  ${item.source}`;
 }
 
 function renderMoodStrip() {
@@ -431,6 +447,13 @@ function renderCalendar() {
     `;
 
     dayButton.addEventListener("click", () => {
+      if (isMobileLike() && selectedTaskForMobile) {
+        assignTaskToDate(selectedTaskForMobile, key);
+        selectedTaskForMobile = null;
+        renderTasks();
+        syncMobileNav("calendar-panel");
+        return;
+      }
       selectedDateKey = key;
       renderCalendar();
       renderSelectedDay();
@@ -455,7 +478,15 @@ function renderSelectedDay() {
   renderMoodStrip();
 
   selectedStickers.innerHTML = "";
-  (entry.stickers || []).forEach((sticker, index) => {
+  const stickerList = entry.stickers || [];
+  if (!stickerList.length) {
+    const empty = document.createElement("div");
+    empty.className = "selected-sticker";
+    empty.textContent = "No sticker picked for today yet.";
+    selectedStickers.appendChild(empty);
+  }
+
+  stickerList.forEach((sticker, index) => {
     const chip = document.createElement("button");
     chip.className = "selected-sticker";
     chip.type = "button";
@@ -510,6 +541,7 @@ function renderTasks() {
   visibleTasks.forEach((task) => {
     const card = taskTemplate.content.firstElementChild.cloneNode(true);
     card.dataset.id = task.id;
+    if (selectedTaskForMobile === task.id) card.classList.add("pick-mode");
     card.querySelector(".task-title").textContent = task.title;
     card.querySelector(".task-tag").innerHTML = renderTagBadge(task.tag);
     card.querySelector(".task-detail").textContent = task.detail || "No extra detail yet.";
@@ -591,15 +623,22 @@ function renderTasks() {
 
     card.addEventListener("mousedown", (event) => {
       if (event.target.closest("button, input, label")) return;
+      if (isMobileLike()) return;
       startPickup(event.clientX, event.clientY);
     });
 
-    card.addEventListener("touchstart", (event) => {
+    card.addEventListener("click", (event) => {
       if (event.target.closest("button, input, label")) return;
-      const touch = event.touches[0];
-      if (!touch) return;
-      startPickup(touch.clientX, touch.clientY);
-    }, { passive: true });
+      if (!isMobileLike()) return;
+      selectedTaskForMobile = selectedTaskForMobile === task.id ? null : task.id;
+      renderTasks();
+      celebrate(
+        selectedTaskForMobile ? `Selected "${task.title}". Tap a date to assign it.` : "Selection cleared",
+        1200,
+        false
+      );
+      syncMobileNav("calendar-panel");
+    });
 
     taskDrawer.appendChild(card);
   });
@@ -697,6 +736,7 @@ async function assignTaskToDate(taskId, dateKey) {
   }
   selectedDateKey = dateKey;
   draggedTaskId = null;
+  selectedTaskForMobile = null;
   clearDropTarget();
   removeDragGhost();
   await persist();
@@ -924,4 +964,37 @@ function formatTargetDate(dateKey) {
     month: "short",
     day: "numeric",
   });
+}
+
+function isMobileLike() {
+  return window.matchMedia("(max-width: 720px)").matches || "ontouchstart" in window;
+}
+
+function syncMobileNav(panelName) {
+  mobileNavButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.panelTarget === panelName);
+  });
+}
+
+function syncMobileNavToScroll() {
+  if (!isMobileLike()) return;
+  const containerRect = mobileSections.getBoundingClientRect();
+  let closestPanel = null;
+  let smallestDistance = Number.POSITIVE_INFINITY;
+  mobileSections.querySelectorAll(".mobile-panel").forEach((panel) => {
+    const distance = Math.abs(panel.getBoundingClientRect().left - containerRect.left);
+    if (distance < smallestDistance) {
+      smallestDistance = distance;
+      closestPanel = panel.dataset.panelName;
+    }
+  });
+  if (closestPanel) syncMobileNav(closestPanel);
+}
+
+function debounce(callback, wait) {
+  let timeoutId;
+  return (...args) => {
+    window.clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => callback(...args), wait);
+  };
 }

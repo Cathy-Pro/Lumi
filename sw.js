@@ -1,4 +1,4 @@
-const CACHE_NAME = "bloomboard-pwa-v1";
+const CACHE_NAME = "lumi-pwa-v2";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -33,6 +33,21 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  const isNavigationRequest = event.request.mode === "navigate";
+
+  if (isNavigationRequest) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put("/index.html", responseClone));
+          return response;
+        })
+        .catch(() => caches.match("/index.html"))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {

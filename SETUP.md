@@ -1,4 +1,4 @@
-# Bloomboard Setup
+# Lumi Setup
 
 ## 1. Create Supabase project
 - Create a project in Supabase.
