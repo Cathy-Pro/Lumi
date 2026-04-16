@@ -387,6 +387,26 @@ h1 {
   color: #99aba4;
 }
 
+.calendar-day-detail {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(99, 127, 118, 0.1);
+  min-height: 144px;
+}
+
+.calendar-day-detail h3 {
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+}
+
+.calendar-day-detail-copy {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .soft-button,
 .icon-button,
 .cta-button,
@@ -919,6 +939,19 @@ select.soft-input {
     scrollbar-width: none;
   }
 
+  .hero-orbital {
+    min-height: auto;
+    gap: 12px;
+    justify-items: stretch;
+  }
+
+  .orbit-card,
+  .orbit-card-alt {
+    position: static;
+    width: 100%;
+    max-width: none;
+  }
+
   .mobile-sections::-webkit-scrollbar {
     display: none;
   }
@@ -942,6 +975,10 @@ select.soft-input {
   .calendar-day {
     min-height: 92px;
     padding: 10px;
+  }
+
+  .calendar-day-detail {
+    min-height: 0;
   }
 
   .task-drawer {

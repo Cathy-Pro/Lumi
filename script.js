@@ -8,6 +8,12 @@ const inspirations = [
   { text: '"I took a deep breath and listened to the old brag of my heart: I am, I am, I am."', source: "Sylvia Plath, The Bell Jar" },
 ];
 
+const notePrompts = [
+  "Whisper something to your universe...",
+  "Add a little spark to your galaxy...",
+  "What’s blooming in your world today?"
+];
+
 const moods = [
   { id: "calm", icon: "🌿", label: "Calm" },
   { id: "hopeful", icon: "🌞", label: "Hopeful" },
@@ -85,6 +91,7 @@ const accountEmail = document.getElementById("account-email");
 
 const monthLabel = document.getElementById("month-label");
 const calendarGrid = document.getElementById("calendar-grid");
+const calendarDayDetail = document.getElementById("calendar-day-detail");
 const selectedDateLabel = document.getElementById("selected-date-label");
 const heroMessage = document.getElementById("hero-message");
 const moodStrip = document.getElementById("mood-strip");
@@ -159,6 +166,12 @@ function wireGlobalEvents() {
     selectedDateKey = toDateKey(today);
     renderCalendar();
     renderSelectedDay();
+    renderCalendarDayDetail();
+    if (isMobileLike()) {
+      const target = mobileSections.querySelector('[data-panel-name="calendar-panel"]');
+      target?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+      syncMobileNav("calendar-panel");
+    }
   });
 
   document.getElementById("prev-month").addEventListener("click", () => {
@@ -474,6 +487,7 @@ function renderSelectedDay() {
   selectedDateLabel.textContent = date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   entryTitleInput.value = entry.title || "";
   richEditor.innerHTML = entry.content || "";
+  richEditor.dataset.placeholder = notePrompts[Math.floor(Math.random() * notePrompts.length)];
   activeMood = entry.mood || null;
   renderMoodStrip();
 
@@ -526,6 +540,8 @@ function renderSelectedDay() {
     });
     dayTaskList.appendChild(pill);
   });
+
+  renderCalendarDayDetail();
 }
 
 function renderTasks() {
@@ -692,7 +708,10 @@ async function addTask() {
   const targetDateInput = document.getElementById("task-target-date");
   const detailInput = document.getElementById("task-detail");
   const title = titleInput.value.trim();
-  if (!title) return;
+  if (!title || !tagInput.value) {
+    celebrate("Add a title and choose a category first.", 1200, false);
+    return;
+  }
 
   state.tasks.unshift({
     id: crypto.randomUUID(),
@@ -705,7 +724,7 @@ async function addTask() {
   });
 
   titleInput.value = "";
-  tagInput.value = "Health";
+  tagInput.value = "";
   targetDateInput.value = "";
   detailInput.value = "";
   await persist();
@@ -964,6 +983,36 @@ function formatTargetDate(dateKey) {
     month: "short",
     day: "numeric",
   });
+}
+
+function renderCalendarDayDetail() {
+  if (!calendarDayDetail) return;
+  const entry = getCurrentEntry();
+  const date = fromDateKey(selectedDateKey);
+  const tasks = getTasksForDate(selectedDateKey);
+  const spark = entry.title || stripHtml(entry.content || "") || "Nothing added yet. Tap a task or note to begin.";
+  const stickerMood = (entry.stickers || []).length ? entry.stickers.join(" ") : "No sticker mood yet.";
+
+  calendarDayDetail.innerHTML = `
+    <h3>${date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}</h3>
+    <div class="day-task-list">
+      ${
+        tasks.length
+          ? tasks
+              .map((task) => `<span class="day-task-pill">${isTaskDoneOnDate(task, selectedDateKey) ? "✅" : "🪄"} ${escapeHtml(task.title)}</span>`)
+              .join("")
+          : '<span class="day-task-pill">No tasks set for this day yet.</span>'
+      }
+    </div>
+    <p class="calendar-day-detail-copy"><strong>Little spark:</strong> ${escapeHtml(spark)}</p>
+    <p class="calendar-day-detail-copy"><strong>Sticker mood:</strong> ${escapeHtml(stickerMood)}</p>
+  `;
+}
+
+function stripHtml(html) {
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+  return (temp.textContent || "").trim();
 }
 
 function isMobileLike() {
